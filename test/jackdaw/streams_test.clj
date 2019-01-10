@@ -11,9 +11,10 @@
             [jackdaw.streams.protocols
              :refer [IKStream IKTable IStreamsBuilder]]
             [jackdaw.streams.specs])
-  (:import [org.apache.kafka.streams.kstream
-            JoinWindows SessionWindows TimeWindows Transformer
-            ValueTransformer]
+  (:import [java.time Duration]
+           [org.apache.kafka.streams.kstream
+            JoinWindows SessionWindows Suppressed Suppressed$BufferConfig
+            TimeWindows Transformer ValueTransformer]
            org.apache.kafka.streams.StreamsBuilder
            [org.apache.kafka.common.serialization Serdes]))
 
@@ -554,6 +555,33 @@
             (is (= 2 (count keyvals)))
             (is (= [1 3] (first keyvals)))
             (is (= [1 6] (second keyvals))))))))
+
+  (testing "suppress"
+    (let [topic-a (mock/topic "topic-a")
+          topic-b (mock/topic "topic-b")
+          driver (mock/build-driver (fn [builder]
+                                      (-> builder
+                                          (k/kstream topic-a)
+                                          (k/group-by-key)
+                                          (k/window-by-time
+                                           (.grace (TimeWindows/of
+                                                    (Duration/ofMillis 100))
+                                                   (Duration/ofMillis 0)))
+                                          (k/count topic-b)
+                                          (k/suppress (Suppressed/untilWindowCloses
+                                                       (Suppressed$BufferConfig/unbounded)))
+
+                                          (k/to-kstream)
+                                          (k/map (fn [[k v]] [(.key k) v]))
+                                          (k/to topic-b))))
+          publish (partial mock/publish driver topic-a)]
+
+      (publish 100 1 1)
+      (publish 200 1 2)
+      (is (= [[1 1]] (mock/get-keyvals driver topic-b)))
+      (publish 300 1 2)
+      (publish 400 1 2)
+      (is (= [[1 1] [1 1]] (mock/get-keyvals driver topic-b)))))
 
   (testing "outer-join"
     (let [topic-a (mock/topic "table-a")

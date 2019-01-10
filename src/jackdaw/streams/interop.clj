@@ -382,6 +382,10 @@
             (ktable* other-ktable)
             (value-joiner value-joiner-fn))))
 
+  (suppress
+    [_ suppressed]
+    (clj-ktable (.suppress ktable suppressed)))
+
   (outer-join
     [_ other-ktable value-joiner-fn]
     (clj-ktable

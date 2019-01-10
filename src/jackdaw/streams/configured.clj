@@ -342,6 +342,12 @@
      config
      (join ktable other-ktable value-joiner-fn)))
 
+  (suppress
+    [_ suppressed]
+    (configured-ktable
+     config
+     (suppress ktable suppressed)))
+
   (outer-join
     [_ other-ktable value-joiner-fn]
     (configured-ktable

@@ -181,6 +181,11 @@
     "Combines the values of the two KTables that share the same key using an
     inner join.")
 
+  (suppress
+    [ktable suppressed]
+    "Suppress some updates from this changelog stream, determined by
+    the supplied Suppressed configuration." )
+
   (outer-join
     [ktable other-ktable value-joiner-fn]
     "Combines the values of two KTables that share the same key using an outer

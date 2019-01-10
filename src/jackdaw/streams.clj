@@ -184,6 +184,12 @@
   [kstream select-key-value-mapper-fn]
   (p/select-key kstream select-key-value-mapper-fn))
 
+(defn suppress
+  "Suppress some updates from this changelog stream, determined by the
+  supplied Suppressed configuration."
+  ([ktable suppressed]
+   (p/suppress ktable suppressed)))
+
 (defn transform
   "Creates a KStream that consists of the results of applying the transformer
   to each key/value in the input stream."
